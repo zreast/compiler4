@@ -5,10 +5,13 @@ main:
 	sub $208,%rsp
 
 	xor %rax,%rax
-	mov %rax,-8(%rbp)
+	mov %rax,-24(%rbp)
 
 	xor %rax,%rax
 	mov %rax,-16(%rbp)
+
+	xor %rax,%rax
+	mov %rax,-8(%rbp)
 
 	xor %rax,%rax
 	mov %rax,-152(%rbp)
@@ -16,7 +19,39 @@ main:
 	xor %rax,%rax
 	mov %rax,-208(%rbp)
 
+	mov $1, %rax
+	push %rax
+
 	mov $10, %rax
+	push %rax
+
+	pop %rbx
+	pop %rax
+	add %rbx, %rax
+	push %rax
+
+	pop %rax
+	mov %rax,-24(%rbp)
+
+	push %rax
+	push %rbx
+	push %rcx
+	mov $show, %rdi
+	mov -24(%rbp), %rax
+	mov %rax,%rsi
+	xor %rax,%rax
+	call printf
+	pop %rcx
+	pop %rbx
+	pop %rax
+
+	mov $1, %rax
+	push %rax
+
+	pop %rax
+	mov %rax,-16(%rbp)
+
+	mov $20, %rax
 	push %rax
 
 	pop %rcx
@@ -41,9 +76,8 @@ L0:
 
 	pop %rbx
 	mov -16(%rbp), %rax
-	xor %rdx,%rdx
-	idiv %rbx
-	push %rdx
+	mul %rbx
+	push %rax
 
 	pop %rax
 	mov %rax,-16(%rbp)
@@ -94,7 +128,7 @@ LI0:
 	jnz L0
 EL0:
 
-	mov $66966, %rax
+	mov $6893, %rax
 	push %rax
 
 	pop %rax

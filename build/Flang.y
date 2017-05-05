@@ -16,8 +16,9 @@ queue<NodeBlock*> queue_node;
 int reserveReg[27] = { };
 
 //TAC initial implementation.
-int lCount =0;
-int ifCount =0;
+int lCount = 0;
+int ifCount = 0;
+int temp_initial = 0;
 stack<int> temp;
 
 int swap_temp;
@@ -73,9 +74,9 @@ void yyerror(const char *s);
 %token CONST
 %token OTHERS
 %token OB CB
-%token ENDLN
+%token NEWLN
 %token ASSIGN EQ IF THEN ENDIF LOOP ENDLOOP SHOW SHOWX COLON
-%token VAR
+%token REGISTER
 
 %left ADD SUB
 %left MUL DIV MOD
@@ -90,7 +91,7 @@ Input:
 ;
 
 Line:
-  ENDLN
+  NEWLN
   | Ifstm
   | Loopstm
   | Stms
@@ -101,7 +102,7 @@ Line:
 
 
 Oprn:
-  VAR
+  REGISTER
   {
   	Variable *node_var = new Variable($1);
   	int char_index = $1;
@@ -147,7 +148,7 @@ Condition:
 
 
 Ifstm:
-  IF OB Condition CB ENDLN THEN ENDLN Stms ENDIF ENDLN  // change Stms to Stm for first version support only one statement
+  IF OB Condition CB NEWLN THEN NEWLN Stms ENDIF NEWLN  // change Stms to Stm for first version support only one statement
   {
   	//NodeBlock *node_stm = stack_node.top();
   	//stack_node.pop();
@@ -161,8 +162,8 @@ Ifstm:
 
 ;
 
-VARF:
-	VAR {
+REGISTERF:
+	REGISTER {
 		Variable *node_var = new Variable($1);
 	  	int char_index = $1;
 	 	//cout << " var = " << $1 << endl;
@@ -176,7 +177,7 @@ VARF:
 	}
 
 Stm:
-  VARF ASSIGN Exp ENDLN{
+  REGISTERF ASSIGN Exp NEWLN{
 	NodeBlock *node_exp = stack_node.top();
   	Variable *node_var = new Variable($1);
  	//cout << " var = " << $1 << endl;
@@ -222,7 +223,7 @@ Exp:
    //insert(&constant_node, $1);
    //stack_print();
    }
-  | VAR {
+  | REGISTER {
   	// add var to tree it's looklike constant but keep on address form fp(frame pointer)
  	Variable *node_var = new Variable($1);
 
@@ -393,8 +394,8 @@ Exp:
       stack_node.push(node);
     }
 ;
-LNO:
-  VAR
+RVALUE:
+  REGISTER
   {
   	Variable *node_var = new Variable($1);
 
@@ -420,7 +421,7 @@ LNO:
   }
 ;
 Loopstm:
-  LOOP OB LNO CB ENDLN Block ENDLOOP ENDLN {
+  LOOP OB RVALUE CB NEWLN Block ENDLOOP NEWLN {
 
     //stack_node.top()->print();
     //NodeBlock *node_stm = stack_node.top();
@@ -442,13 +443,13 @@ Loopstm:
 ;
 
 Display:
-  SHOW VAR ENDLN{
+  SHOW REGISTER NEWLN{
     Variable *node_var = new Variable($2);
     Show *node_show = new Show ($2*4);
 //    node_show->print();
     asmQ.push(xprint(node_var->getAsm(),false));
   }
-  | SHOWX VAR ENDLN{
+  | SHOWX REGISTER NEWLN{
     Variable *node_var = new Variable($2);
     ShowX *node_show = new ShowX ($2*4);
 //    node_show->print();

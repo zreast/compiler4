@@ -8,25 +8,25 @@ using namespace std;
 
 white [ \t]+
 digit [0-9]
-integer {digit}+
+dec {digit}+
 hex [0-9a-fA-F]
 %%
 
 {white} { }
 
-0x{hex}+ {
+{hex}+[hH] {
   sscanf(yytext,"%x",&yylval);
   return CONST;
 }
 
-{integer} {
+{dec} {
   sscanf(yytext,"%d",&yylval);
   return CONST;
 }
 
 $[a-z] {
   yylval=(int)yytext[1]-'a';
-  return VAR;
+  return REGISTER;
 }
 
 "+" return ADD;
@@ -49,5 +49,5 @@ $[a-z] {
 "showx" return SHOWX;
 ":" return COLON;
 
-"\n" return ENDLN;
+"\n" return NEWLN;
 . { return yytext[0]; }

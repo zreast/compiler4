@@ -21,7 +21,7 @@ int ifCount =0;
 stack<int> temp;
 
 int swap_temp;
-NodeBlock nodeblock; //create nodeblock << need to fixed !!
+NodeBlock nodeblock; //create nodeblock
 
 //Binary Tree initial implmentation
 struct node{
@@ -72,13 +72,13 @@ void yyerror(const char *s);
 
 %token CONST
 %token OTHERS
-%token LEFT RIGHT
+%token OB CB
 %token ENDLN
-%token ASSIGN EQ IF ENDIF LOOP END SHOW SHOWX COLON
+%token ASSIGN EQ IF THEN ENDIF LOOP ENDLOOP SHOW SHOWX COLON
 %token VAR
 
 %left ADD SUB
-%left TIMES DIVIDE MOD
+%left MUL DIV MOD
 %left NEG
 
 %start Input
@@ -147,7 +147,7 @@ Condition:
 
 
 Ifstm:
-  IF Condition ENDLN Stms ENDIF ENDLN  // change Stms to Stm for first version support only one statement
+  IF OB Condition CB ENDLN THEN ENDLN Stms ENDIF ENDLN  // change Stms to Stm for first version support only one statement
   {
   	//NodeBlock *node_stm = stack_node.top();
   	//stack_node.pop();
@@ -297,7 +297,7 @@ Exp:
 	  */
  	asmQ.push(xsub(node_right->getAsm(),node_left->getAsm(),""));
     }
-  | Exp TIMES Exp {
+  | Exp MUL Exp {
       //TAC Syntax
      /* swap_temp = temp.top();
       temp.pop();
@@ -321,7 +321,7 @@ Exp:
       //node_test->print();
  	asmQ.push(xmul(node_right->getAsm(),node_left->getAsm(),""));
     }
-  | Exp DIVIDE Exp {
+  | Exp DIV Exp {
       //TAC Syntax
       /*swap_temp = temp.top();
       temp.pop();
@@ -373,7 +373,7 @@ Exp:
  	asmQ.push(xmod(node_right->getAsm(),node_left->getAsm(),""));
 
     }
-  | LEFT Exp RIGHT { }
+  | OB Exp CB { }
   | SUB Exp %prec NEG {
       //TAC Syntax
       //cout << "T" << temp.top() << " =  -" << "T" << temp.top() << endl;
@@ -420,7 +420,7 @@ LNO:
   }
 ;
 Loopstm:
-  LOOP LNO ENDLN Block END ENDLN {
+  LOOP OB LNO CB ENDLN Block ENDLOOP ENDLN {
 
     //stack_node.top()->print();
     //NodeBlock *node_stm = stack_node.top();

@@ -31,19 +31,19 @@ $[a-z] {
 
 "+" return ADD;
 "-" return SUB;
-"*" return TIMES;
-"/" return DIVIDE;
+"*" return MUL;
+"/" return DIV;
 "%" return MOD;
 
-"(" return LEFT;
-")" return RIGHT;
-
-"==" return EQ;
-"=" return ASSIGN;
+"(" return OB;
+")" return CB;
+"=" return EQ;
+"<<" return ASSIGN;
 "if" return IF;
+"then" return THEN;
 "endif" return ENDIF;
 "loop" return LOOP;
-"endloop" return END;
+"endloop" return ENDLOOP;
 
 "show" return SHOW;
 "showx" return SHOWX;

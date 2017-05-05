@@ -94,7 +94,7 @@ LI0:
 	jnz L0
 EL0:
 
-	mov $9998, %rax
+	mov $66966, %rax
 	push %rax
 
 	pop %rax

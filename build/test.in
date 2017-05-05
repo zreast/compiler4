@@ -1,12 +1,13 @@
-loop 10
-	$a=$a+1
-	$b=$b%2
+loop (10)
+	$a << $a+1
+	$b << $b%2
 	show $a
 	show $b
-	if $b==0
-		$s=$s+$a
-	endif
+	if ($b=0)
+		then		
+		$s << $s+$a
+		endif
 endloop
-$z=9998
+$z << 66966
 show $z
 show $s

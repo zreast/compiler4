@@ -13,7 +13,7 @@ using namespace std;
 
 void stack_print();
 queue<NodeBlock*> queue_node;
-int reserveReg[27] = { }; 
+int reserveReg[27] = { };
 
 //TAC initial implementation.
 int lCount =0;
@@ -77,7 +77,7 @@ void yyerror(const char *s);
 %token ASSIGN EQ IF ENDIF LOOP END SHOW SHOWX COLON
 %token VAR
 
-%left PLUS MINUS 
+%left ADD SUB
 %left TIMES DIVIDE MOD
 %left NEG
 
@@ -90,10 +90,10 @@ Input:
 ;
 
 Line:
-  ENDLN 
+  ENDLN
   | Ifstm
   | Loopstm
-  | Stms 
+  | Stms
   | Display
   | Condition
   | error { yyerror("oops\n"); }
@@ -101,12 +101,12 @@ Line:
 
 
 Oprn:
-  VAR 
+  VAR
   {
   	Variable *node_var = new Variable($1);
   	int char_index = $1;
  	//cout << " var = " << $1 << endl;
- 	
+
  	if(reserveReg[char_index] == 0)
  	{
  		asmV.push(init_var(node_var->getAsm()));
@@ -119,7 +119,7 @@ Oprn:
 
   | CONST
   {
-  	Constant *node_const = new Constant(); //create constant object 
+  	Constant *node_const = new Constant(); //create constant object
    node_const->setValue($1);  //add value to constant node
    //test aassign
    //cout << "const assign : " << node_const->getValue() << endl;
@@ -130,14 +130,14 @@ Oprn:
 ;
 
 Condition:
-    Oprn EQ Oprn 
-  { 
+    Oprn EQ Oprn
+  {
   	NodeBlock *node1 = stack_node.top();
   	stack_node.pop();
   	NodeBlock *node2 = stack_node.top();
   	stack_node.pop();
 
-  	Equal *node_equal = new Equal(node2,node1); //condition object 
+  	Equal *node_equal = new Equal(node2,node1); //condition object
   	stack_node.push(node_equal);
   	//node_equal->print();
   	//stack_print();
@@ -162,13 +162,13 @@ Ifstm:
 ;
 
 VARF:
-	VAR { 
+	VAR {
 		Variable *node_var = new Variable($1);
 	  	int char_index = $1;
 	 	//cout << " var = " << $1 << endl;
-	 	
+
 	 	if(reserveReg[char_index] == 0)
-	 	{	
+	 	{
 	 		asmV.push(init_var(node_var->getAsm()));
 	 		reserveReg[char_index] = 1;
 	 	}
@@ -203,16 +203,16 @@ Stms:
   | Stm Stms {}
 ;
 
-Exp: 
-   
+Exp:
+
    CONST {
    //TAC Syntax
-   /*cout << "T" << count << " = " << $1 <<endl; 
-   temp.push(count); 
+   /*cout << "T" << count << " = " << $1 <<endl;
+   temp.push(count);
    $$ = count; count++;
 	*/
    //TREE Syntax --Keep in stack
-   Constant *node_const = new Constant(); //create constant object 
+   Constant *node_const = new Constant(); //create constant object
    node_const->setValue($1);  //add value to constant node
    stack_node.push(node_const);
 	asmQ.push(xconstant(node_const->getValue()));
@@ -221,7 +221,7 @@ Exp:
 
    //insert(&constant_node, $1);
    //stack_print();
-   } 
+   }
   | VAR {
   	// add var to tree it's looklike constant but keep on address form fp(frame pointer)
  	Variable *node_var = new Variable($1);
@@ -229,7 +229,7 @@ Exp:
  	int char_index = $1;
 
  	if(reserveReg[char_index] == 0)
- 	{		
+ 	{
  		asmV.push(init_var(node_var->getAsm()));
  		reserveReg[char_index] = 1;
  	}
@@ -241,13 +241,13 @@ Exp:
 
 
   }
-  | Exp PLUS Exp {
+  | Exp ADD Exp {
       //TAC Syntax
       /*swap_temp = temp.top();
-      temp.pop(); 
+      temp.pop();
       cout<<"T"<< count << " = " << "T" << temp.top();
-      temp.pop();   
-      cout << " + T" << swap_temp << endl; 
+      temp.pop();
+      cout << " + T" << swap_temp << endl;
 	  */
 
       //TREE Syntax
@@ -261,26 +261,26 @@ Exp:
       AddSyntax *addsyn = new AddSyntax(node_left,node_right);
       stack_node.push(addsyn);
 
-      // FOR TESTING VALUE 
-      
- 	asmQ.push(xadd(node_right->getAsm(),node_left->getAsm(),"")); 
-	  
+      // FOR TESTING VALUE
+
+ 	asmQ.push(xadd(node_right->getAsm(),node_left->getAsm(),""));
+
 
     }
-  | Exp MINUS Exp {
+  | Exp SUB Exp {
 
       //TAC Syntax
       /*swap_temp = temp.top();
-      temp.pop(); 
+      temp.pop();
       cout<<"T"<< count << " = " << "T" << temp.top();
-      temp.pop();   
-      cout << " - T" << swap_temp << endl; 
+      temp.pop();
+      cout << " - T" << swap_temp << endl;
       temp.push(count);count++;
 		*/
 
       //TREE Syntax
       NodeBlock *node_left;
-      NodeBlock *node_right; 
+      NodeBlock *node_right;
       node_right = stack_node.top();
 	  stack_node.pop();
       node_left = stack_node.top();
@@ -289,13 +289,13 @@ Exp:
       MinusSyntax* minsyn = new MinusSyntax(node_left,node_right);
       stack_node.push(minsyn);
       //minsyn->print();
-      // FOR TESTING VALUE 
+      // FOR TESTING VALUE
       /*
       NodeBlock* node_test = stack_node.top();
-      cout << "test print from stack" << endl;  
+      cout << "test print from stack" << endl;
       node_test->print();
 	  */
- 	asmQ.push(xsub(node_right->getAsm(),node_left->getAsm(),""));      
+ 	asmQ.push(xsub(node_right->getAsm(),node_left->getAsm(),""));
     }
   | Exp TIMES Exp {
       //TAC Syntax
@@ -320,7 +320,7 @@ Exp:
       //NodeBlock* node_test = stack_node.top();
       //node_test->print();
  	asmQ.push(xmul(node_right->getAsm(),node_left->getAsm(),""));
-    }         
+    }
   | Exp DIVIDE Exp {
       //TAC Syntax
       /*swap_temp = temp.top();
@@ -345,12 +345,12 @@ Exp:
       //node_test->print();
 
  	asmQ.push(xdiv(node_right->getAsm(),node_left->getAsm(),""));
-} 
+}
   | Exp MOD Exp {
       //TAC Syntax
   	  /*
       swap_temp = temp.top();
-      temp.pop(); 
+      temp.pop();
       cout << "T" << count << " = " << "T" << temp.top();
       temp.pop();
       cout << " % T" << swap_temp << endl;
@@ -374,7 +374,7 @@ Exp:
 
     }
   | LEFT Exp RIGHT { }
-  | MINUS Exp %prec NEG {
+  | SUB Exp %prec NEG {
       //TAC Syntax
       //cout << "T" << temp.top() << " =  -" << "T" << temp.top() << endl;
 
@@ -394,7 +394,7 @@ Exp:
     }
 ;
 LNO:
-  VAR 
+  VAR
   {
   	Variable *node_var = new Variable($1);
 
@@ -442,7 +442,7 @@ Loopstm:
 ;
 
 Display:
-  SHOW VAR ENDLN{  
+  SHOW VAR ENDLN{
     Variable *node_var = new Variable($2);
     Show *node_show = new Show ($2*4);
 //    node_show->print();
@@ -518,12 +518,12 @@ int main() {
   }
   // set flex to read from it instead of defaulting to STDIN:
   yyin = myfile;
-  
+
   // parse through the input until there is no more:
   do {
     yyparse();
   } while (!feof(yyin));
 */
-  
+
   return 0;
 }

@@ -6,7 +6,7 @@ loop 10
 	if $b==0
 		$s=$s+$a
 	endif
-end
-$z=99999
+endloop
+$z=9998
 show $z
 show $s

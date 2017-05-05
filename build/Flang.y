@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <fstream>
 #include "nodeblock.cpp"
-#include "asmgen.cpp"
+#include "asmlink.cpp"
 using namespace std;
 
 void stack_print();
@@ -82,22 +82,22 @@ void yyerror(const char *s);
 %left MUL DIV MOD
 %left NEG
 
-%start Input
+%start recursion
 
 %%
 
-Input:
-     | Line Input;
+recursion:
+     | buffer recursion;
 ;
 
-Line:
+buffer:
   NEWLN
-  | Ifstm
-  | Loopstm
+  | ifstatement
+  | loop
   | Stms
   | Display
   | Condition
-  | error { yyerror("oops\n"); }
+  | error { yyerror("ERROR\n"); }
 ;
 
 
@@ -147,7 +147,7 @@ Condition:
 ;
 
 
-Ifstm:
+ifstatement:
   IF OB Condition CB NEWLN THEN NEWLN Stms ENDIF NEWLN  // change Stms to Stm for first version support only one statement
   {
   	//NodeBlock *node_stm = stack_node.top();
@@ -193,10 +193,10 @@ Stm:
 
 Block:
   Stms {}
-  | Ifstm {}
-  | Ifstm Stms {}
-  | Stms Ifstm {}
-  | Stms Ifstm Stms {}
+  | ifstatement {}
+  | ifstatement Stms {}
+  | Stms ifstatement {}
+  | Stms ifstatement Stms {}
 ;
 
 Stms:
@@ -420,7 +420,7 @@ RVALUE:
 	asmQ.push(xloopStart(node_const->getAsm(),lCount));
   }
 ;
-Loopstm:
+loop:
   LOOP OB RVALUE CB NEWLN Block ENDLOOP NEWLN {
 
     //stack_node.top()->print();
@@ -459,7 +459,7 @@ Display:
 %%
 
 void yyerror(const char *s) {
-  cout << "EEK, parse error!  Message: " << s << endl;
+  cout << "Aw! snap, Error message: " << s << endl;
   // might as well halt now:
   exit(-1);
 }
@@ -492,33 +492,33 @@ void stack_print()
 
 int main() {
   while(yyparse());
-	ofstream myfile;
-	myfile.open ("assembly.s");
+	ofstream file_p;
+	file_p.open ("assembly.s");
 
-	myfile<<genHead()<<endl;
+	file_p<<genHead()<<endl;
 
 	while(!asmV.empty()){
-		 myfile<<asmV.front()<<endl;
+		 file_p<<asmV.front()<<endl;
 		asmV.pop();
 	}
 
 	while(!asmQ.empty()){
-		 myfile<<asmQ.front()<<endl;
+		 file_p<<asmQ.front()<<endl;
 		asmQ.pop();
 	}
-	myfile<<genTail()<<endl;
-	myfile.close();
+	file_p<<genTail()<<endl;
+	file_p.close();
 
 /*
   // open a file handle to a particular file:
-  FILE *myfile = fopen("a.snazzle.file", "r");
+  FILE *file_p = fopen("a.snazzle.file", "r");
   // make sure it is valid:
-  if (!myfile) {
+  if (!file_p) {
     cout << "I can't open a.snazzle.file!" << endl;
     return -1;
   }
   // set flex to read from it instead of defaulting to STDIN:
-  yyin = myfile;
+  yyin = file_p;
 
   // parse through the input until there is no more:
   do {

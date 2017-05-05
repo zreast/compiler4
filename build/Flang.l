@@ -6,13 +6,13 @@
 using namespace std;
 %}
 
-white [ \t]+
+blank [ \t]+
 digit [0-9]
 dec {digit}+
 hex [0-9a-fA-F]
 %%
 
-{white} { }
+{blank} { }
 
 {hex}+[hH] {
   sscanf(yytext,"%x",&yylval);

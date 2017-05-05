@@ -1,6 +1,9 @@
-loop (10)
+$c << 1H + AH
+show $c
+$b << 1
+loop (20)
 	$a << $a+1
-	$b << $b%2
+	$b << $b*2
 	show $a
 	show $b
 	if ($b=0)

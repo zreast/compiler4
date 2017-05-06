@@ -8,10 +8,10 @@ main:
 	mov %rax,-24(%rbp)
 
 	xor %rax,%rax
-	mov %rax,-8(%rbp)
+	mov %rax,-264(%rbp)
 
 	xor %rax,%rax
-	mov %rax,-16(%rbp)
+	mov %rax,-272(%rbp)
 
 	mov $10, %rax
 	push %rax
@@ -43,7 +43,7 @@ main:
 	push %rax
 
 	pop %rax
-	mov %rax,-8(%rbp)
+	mov %rax,-264(%rbp)
 
 	mov $20, %rax
 	push %rax
@@ -58,30 +58,30 @@ L0:
 	push %rax
 
 	pop %rbx
-	mov -8(%rbp), %rax
+	mov -264(%rbp), %rax
 	add %rbx, %rax
 	push %rax
 
 	pop %rax
-	mov %rax,-8(%rbp)
+	mov %rax,-264(%rbp)
 
 	mov $2, %rax
 	push %rax
 
 	pop %rbx
-	mov -8(%rbp), %rax
+	mov -264(%rbp), %rax
 	xor %rdx,%rdx
 	idiv %rbx
 	push %rdx
 
 	pop %rax
-	mov %rax,-16(%rbp)
+	mov %rax,-272(%rbp)
 
 	mov $0, %rax
 	push %rax
 
 	pop %rbx
-	mov -16(%rbp),%rax
+	mov -272(%rbp),%rax
 	cmp %rax,%rbx
 	jnz LI0
 
@@ -89,7 +89,7 @@ L0:
 	push %rbx
 	push %rcx
 	mov $show, %rdi
-	mov -8(%rbp), %rax
+	mov -264(%rbp), %rax
 	mov %rax,%rsi
 	xor %rax,%rax
 	call printf

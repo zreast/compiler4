@@ -10,7 +10,7 @@
 #include <fstream>
 using namespace std;
 
-int reg_Array[30] = {};
+int reg_Array[60] = {};
 void stack_print();
 queue<mainbuffer*> queue_node;
 int lCount = 0;
@@ -73,7 +73,7 @@ buffer:
   | loop
   | multistatement
   | Display
-  | Condition
+  | condition
   | error { yyerror("ERROR\n"); }
 ;
 
@@ -93,17 +93,16 @@ reg:
   }
 
   | CONST
-  {
-  	Constant *node_const = new Constant(); //create constant object
-   node_const->setValue($1);  //add value to constant node
+    {
+      Constant *node_const = new Constant(); //create constant object
+      node_const->setValue($1);  //add value to constant node
 
-   stack_node.push(node_const);
-
-	asmQ.push(xconstant(node_const->getValue()));
-  }
+      stack_node.push(node_const);
+      asmQ.push(xconstant(node_const->getValue()));
+    }
 ;
 
-Condition:
+condition:
     reg EQUAL reg
   {
   	mainbuffer *node1 = stack_node.top();
@@ -119,7 +118,7 @@ Condition:
 
 
 ifstatement:
-  IF OB Condition CB NEWLN THEN NEWLN multistatement ENDIF NEWLN  // change multistatement to statement for first version support only one statement
+  IF OB condition CB NEWLN THEN NEWLN multistatement ENDIF NEWLN  // change multistatement to statement for first version support only one statement
   {
 	   asmQ.push(xif(&ifCount));
   }
@@ -176,11 +175,7 @@ expression:
    node_const->setValue($1);  //add value to constant node
    stack_node.push(node_const);
 	asmQ.push(xconstant(node_const->getValue()));
-   //test aassign
-   //cout << "const assign : " << node_const->getValue() << endl;
 
-   //insert(&constant_node, $1);
-   //stack_print();
    }
   | REGISTER {
   	// add var to tree it's looklike constant but keep on address form fp(frame pointer)

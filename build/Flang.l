@@ -23,8 +23,8 @@ hex [0-9a-fA-F]
   return CONST;
 }
 
-$[a-z] {
-  yylval=(int)yytext[1]-'a';
+$[a-zA-Z] {
+  yylval=(int)yytext[1]-'A';
   return REGISTER;
 }
 

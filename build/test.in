@@ -1,5 +1,5 @@
-$c << Ah + Ah
-showx $c
+$C << Ah + Ah
+showx $C
 $a << 1
 loop (20)
 	$a << $a+1

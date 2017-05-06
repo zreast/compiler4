@@ -1,5 +1,4 @@
 #include <iostream>
-//#include <sstream>
 #include <string>
 
 using namespace std;
@@ -7,7 +6,7 @@ using namespace std;
 string xassign(string op1,int offset){
 	stringstream asmCode;
 	if(op1==""){
-		asmCode <<"\tpop %rax"<<endl;	
+		asmCode <<"\tpop %rax"<<endl;
 		asmCode <<"\tmov %rax,-"<<offset<<"(%rbp)"<<endl;
 	}else
 		asmCode <<"\tmov -"<<op1<<"(%rbp),-"<<offset<<"(%rbp)"<<endl;
@@ -126,7 +125,7 @@ string xcondition(string op1,string op2,int lCount){
 	}
 	asmCode <<"\tcmp %rax,%rbx"<<endl;
 	asmCode <<"\tjnz LI"<<lCount<<endl;
-	return asmCode.str();	
+	return asmCode.str();
 }
 
 string xif(int *lCount){
@@ -157,7 +156,7 @@ string xloop(int *lCount){
 	asmCode <<"\tdec %rcx"<<endl;
 	asmCode <<"\tjnz L"<<*lCount<<endl;
 	asmCode <<"EL"<<*lCount<<":"<<endl;
-	
+
 	*lCount=*lCount+1;
 	return asmCode.str();
 }

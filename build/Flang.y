@@ -1,30 +1,27 @@
 %{
+#include "mainbuffer.cpp"
+#include "asmlink.cpp"
 #include <cstdio>
 #include <iostream>
 #include <string>
-//#include <sstream>
 #include <stack>
 #include <queue>
 #include <cstdlib>
 #include <fstream>
-#include "nodeblock.cpp"
-#include "asmlink.cpp"
 using namespace std;
 
+int reg_Array[30] = {};
 void stack_print();
-queue<NodeBlock*> queue_node;
-int reserveReg[27] = { };
-
-//TAC initial implementation.
+queue<mainbuffer*> queue_node;
 int lCount = 0;
 int ifCount = 0;
 int temp_initial = 0;
 stack<int> temp;
 
 int swap_temp;
-NodeBlock nodeblock; //create nodeblock
+mainbuffer nodeblock;
 
-//Binary Tree initial implmentation
+//init Binary tree
 struct node{
    int data;
    struct node *right, *left;
@@ -36,33 +33,13 @@ typedef struct node node;
 node *subtree;
 
 //stack for tree
-stack<NodeBlock*> stack_node;
-
-void print_inorder(node *tree)
-{
-    if (tree)
-    {
-      //print_inorder(tree->left);
-      printf("%d\n",tree->data);
-      //print_inorder(tree->right);
-    }
-}
-
-void deltree(node * tree)
-{
-    if (tree)
-    {
-      deltree(tree->left);
-      deltree(tree->right);
-      free(tree);
-    }
-}
+stack<mainbuffer*> stack_node;
 
 string asmShow(){
 	return "mov $show,%edi \nmov %eax,%esi \npush %rax\ncall printf\npop %rax\nret\n";
 }
 
-// stuff from flex that bison needs to know about:
+// stuff from flex that bison needs to know
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
@@ -75,7 +52,7 @@ void yyerror(const char *s);
 %token OTHERS
 %token OB CB
 %token NEWLN
-%token ASSIGN EQ IF THEN ENDIF LOOP ENDLOOP SHOW SHOWX COLON
+%token ASSIGN EQUAL IF THEN ENDIF LOOP ENDLOOP SHOW SHOWX COLON
 %token REGISTER
 
 %left ADD SUB
@@ -94,70 +71,57 @@ buffer:
   NEWLN
   | ifstatement
   | loop
-  | Stms
+  | multistatement
   | Display
   | Condition
   | error { yyerror("ERROR\n"); }
 ;
 
 
-Oprn:
+reg:
   REGISTER
   {
   	Variable *node_var = new Variable($1);
   	int char_index = $1;
- 	//cout << " var = " << $1 << endl;
 
- 	if(reserveReg[char_index] == 0)
+ 	if(reg_Array[char_index] == 0)
  	{
  		asmV.push(init_var(node_var->getAsm()));
- 		reserveReg[char_index] = 1;
+ 		reg_Array[char_index] = 1;
  	}
  	stack_node.push(node_var);
-	//cout << "var assign @ = " << node_var->getValue() << endl;
-  	//stack_print();
   }
 
   | CONST
   {
   	Constant *node_const = new Constant(); //create constant object
    node_const->setValue($1);  //add value to constant node
-   //test aassign
-   //cout << "const assign : " << node_const->getValue() << endl;
+
    stack_node.push(node_const);
-   //stack_print();
+
 	asmQ.push(xconstant(node_const->getValue()));
   }
 ;
 
 Condition:
-    Oprn EQ Oprn
+    reg EQUAL reg
   {
-  	NodeBlock *node1 = stack_node.top();
+  	mainbuffer *node1 = stack_node.top();
   	stack_node.pop();
-  	NodeBlock *node2 = stack_node.top();
+  	mainbuffer *node2 = stack_node.top();
   	stack_node.pop();
 
   	Equal *node_equal = new Equal(node2,node1); //condition object
   	stack_node.push(node_equal);
-  	//node_equal->print();
-  	//stack_print();
 	asmQ.push(xcondition(node1->getAsm(),node2->getAsm(),ifCount));
   }
 ;
 
 
 ifstatement:
-  IF OB Condition CB NEWLN THEN NEWLN Stms ENDIF NEWLN  // change Stms to Stm for first version support only one statement
+  IF OB Condition CB NEWLN THEN NEWLN multistatement ENDIF NEWLN  // change multistatement to statement for first version support only one statement
   {
-  	//NodeBlock *node_stm = stack_node.top();
-  	//stack_node.pop();
-	//NodeBlock *node_equal = stack_node.top();  //statements do after pass condition
-	//stack_node.pop(); // TODO memory leak?
-
-  	//IfStatement *node_if = new IfStatement(node_equal);
-	//stack_node.push(node_if);
-	asmQ.push(xif(&ifCount));
+	   asmQ.push(xif(&ifCount));
   }
 
 ;
@@ -168,18 +132,18 @@ REGISTERF:
 	  	int char_index = $1;
 	 	//cout << " var = " << $1 << endl;
 
-	 	if(reserveReg[char_index] == 0)
+	 	if(reg_Array[char_index] == 0)
 	 	{
 	 		asmV.push(init_var(node_var->getAsm()));
-	 		reserveReg[char_index] = 1;
+	 		reg_Array[char_index] = 1;
 	 	}
 	 	stack_node.push(node_var);
 	}
 
-Stm:
-  REGISTERF ASSIGN Exp NEWLN{
-	NodeBlock *node_exp = stack_node.top();
-  	Variable *node_var = new Variable($1);
+statement:
+  REGISTERF ASSIGN expression NEWLN{
+	mainbuffer *node_exp = stack_node.top();
+  Variable *node_var = new Variable($1);
  	//cout << " var = " << $1 << endl;
  	stack_node.push(node_exp);
 	//cout << "var assign @ = " << node_var->getValue() << endl;
@@ -191,28 +155,23 @@ Stm:
   }
 ;
 
-Block:
-  Stms {}
+blockstatement:
+  multistatement {}
   | ifstatement {}
-  | ifstatement Stms {}
-  | Stms ifstatement {}
-  | Stms ifstatement Stms {}
+  | ifstatement multistatement {}
+  | multistatement ifstatement {}
+  | multistatement ifstatement multistatement {}
 ;
 
-Stms:
-  Stm {  }
-  | Stm Stms {}
+multistatement:
+  statement {  }
+  | statement multistatement {}
 ;
 
-Exp:
+expression:
 
    CONST {
-   //TAC Syntax
-   /*cout << "T" << count << " = " << $1 <<endl;
-   temp.push(count);
-   $$ = count; count++;
-	*/
-   //TREE Syntax --Keep in stack
+
    Constant *node_const = new Constant(); //create constant object
    node_const->setValue($1);  //add value to constant node
    stack_node.push(node_const);
@@ -229,10 +188,10 @@ Exp:
 
  	int char_index = $1;
 
- 	if(reserveReg[char_index] == 0)
+ 	if(reg_Array[char_index] == 0)
  	{
  		asmV.push(init_var(node_var->getAsm()));
- 		reserveReg[char_index] = 1;
+ 		reg_Array[char_index] = 1;
  	}
 
  	//cout << " var = " << $1 << endl;
@@ -242,18 +201,10 @@ Exp:
 
 
   }
-  | Exp ADD Exp {
-      //TAC Syntax
-      /*swap_temp = temp.top();
-      temp.pop();
-      cout<<"T"<< count << " = " << "T" << temp.top();
-      temp.pop();
-      cout << " + T" << swap_temp << endl;
-	  */
+  | expression ADD expression {
 
-      //TREE Syntax
-      NodeBlock *node_left;
-      NodeBlock *node_right;
+      mainbuffer *node_left;
+      mainbuffer *node_right;
       node_right = stack_node.top();
       stack_node.pop();
       node_left = stack_node.top();
@@ -262,26 +213,14 @@ Exp:
       AddSyntax *addsyn = new AddSyntax(node_left,node_right);
       stack_node.push(addsyn);
 
-      // FOR TESTING VALUE
-
  	asmQ.push(xadd(node_right->getAsm(),node_left->getAsm(),""));
 
 
     }
-  | Exp SUB Exp {
+  | expression SUB expression {
 
-      //TAC Syntax
-      /*swap_temp = temp.top();
-      temp.pop();
-      cout<<"T"<< count << " = " << "T" << temp.top();
-      temp.pop();
-      cout << " - T" << swap_temp << endl;
-      temp.push(count);count++;
-		*/
-
-      //TREE Syntax
-      NodeBlock *node_left;
-      NodeBlock *node_right;
+      mainbuffer *node_left;
+      mainbuffer *node_right;
       node_right = stack_node.top();
 	  stack_node.pop();
       node_left = stack_node.top();
@@ -292,24 +231,16 @@ Exp:
       //minsyn->print();
       // FOR TESTING VALUE
       /*
-      NodeBlock* node_test = stack_node.top();
+      mainbuffer* node_test = stack_node.top();
       cout << "test print from stack" << endl;
       node_test->print();
 	  */
  	asmQ.push(xsub(node_right->getAsm(),node_left->getAsm(),""));
     }
-  | Exp MUL Exp {
-      //TAC Syntax
-     /* swap_temp = temp.top();
-      temp.pop();
-      cout << "T" << count << " = " << "T" << temp.top();
-      temp.pop();
-      cout << " * T" << swap_temp << endl;
-      temp.push(count);count++;
-	 */
-      //TREE Syntax
-      NodeBlock *node_left;
-      NodeBlock *node_right;
+  | expression MUL expression {
+
+      mainbuffer *node_left;
+      mainbuffer *node_right;
       node_right = stack_node.top();
       stack_node.pop();
       node_left = stack_node.top();
@@ -318,22 +249,13 @@ Exp:
       TimesSyntax* timessyn = new TimesSyntax(node_left,node_right);
       stack_node.push(timessyn);
 
-      //NodeBlock* node_test = stack_node.top();
+      //mainbuffer* node_test = stack_node.top();
       //node_test->print();
  	asmQ.push(xmul(node_right->getAsm(),node_left->getAsm(),""));
     }
-  | Exp DIV Exp {
-      //TAC Syntax
-      /*swap_temp = temp.top();
-      temp.pop();
-      cout << "T" << count << " = " << "T" << temp.top();
-      temp.pop();
-      cout << " / T" << swap_temp << endl;
-      temp.push(count);count++;
-	 */
-      //TREE Syntax
-      NodeBlock *node_left;
-      NodeBlock *node_right;
+  | expression DIV expression {
+      mainbuffer *node_left;
+      mainbuffer *node_right;
       node_right = stack_node.top();
       stack_node.pop();
       node_left = stack_node.top();
@@ -342,25 +264,15 @@ Exp:
       DivideSyntax* dividesyn = new DivideSyntax(node_left,node_right);
       stack_node.push(dividesyn);
 
-      //NodeBlock* node_test = stack_node.top();
+      //mainbuffer* node_test = stack_node.top();
       //node_test->print();
 
  	asmQ.push(xdiv(node_right->getAsm(),node_left->getAsm(),""));
 }
-  | Exp MOD Exp {
-      //TAC Syntax
-  	  /*
-      swap_temp = temp.top();
-      temp.pop();
-      cout << "T" << count << " = " << "T" << temp.top();
-      temp.pop();
-      cout << " % T" << swap_temp << endl;
-      temp.push(count);count++;
-	  */
+  | expression MOD expression {
 
-      //TREE Syntax
-      NodeBlock *node_left;
-      NodeBlock *node_right;
+      mainbuffer *node_left;
+      mainbuffer *node_right;
       node_right = stack_node.top();
       stack_node.pop();
       node_left = stack_node.top();
@@ -369,18 +281,13 @@ Exp:
       ModSyntax* modsyn = new ModSyntax(node_left,node_right);
       stack_node.push(modsyn);
 
-      //NodeBlock* node_test = stack_node.top();
-      //node_test->print();
  	asmQ.push(xmod(node_right->getAsm(),node_left->getAsm(),""));
 
     }
-  | OB Exp CB { }
-  | SUB Exp %prec NEG {
-      //TAC Syntax
-      //cout << "T" << temp.top() << " =  -" << "T" << temp.top() << endl;
+  | OB expression CB { }
+  | SUB expression %prec NEG {
 
-      //TREE Syntax
-      NodeBlock *node;
+      mainbuffer *node;
       node = stack_node.top();
       //cout << "OLD: " << node->getValue() << endl;
       stack_node.pop();
@@ -401,10 +308,10 @@ RVALUE:
 
   	int char_index = $1;
 
-  	if(reserveReg[char_index] == 0)
+  	if(reg_Array[char_index] == 0)
  	{
  		asmV.push(init_var(node_var->getAsm()));
- 		reserveReg[char_index] = 1;
+ 		reg_Array[char_index] = 1;
  	}
 
  	stack_node.push(node_var);
@@ -421,23 +328,12 @@ RVALUE:
   }
 ;
 loop:
-  LOOP OB RVALUE CB NEWLN Block ENDLOOP NEWLN {
+  LOOP OB RVALUE CB NEWLN blockstatement ENDLOOP NEWLN {
 
-    //stack_node.top()->print();
-    //NodeBlock *node_stm = stack_node.top();
-    //stack_node.pop();
-    //stack_node.top()->print();
-    //NodeBlock *node_const = stack_node.top();
-    //stack_node.pop();
     Variable *node_var = new Variable(-1);
-    //node_var->print();
 
     LoopStatement *node_loop = new LoopStatement(node_var);
 
-    //node_loop->print();
-    //stack_print();
-    //stack_node.push(node_loop);
-    //stack_print();
 	asmQ.push(xloop(&lCount));
   }
 ;
@@ -460,35 +356,8 @@ Display:
 
 void yyerror(const char *s) {
   cout << "Aw! snap, Error message: " << s << endl;
-  // might as well halt now:
   exit(-1);
 }
-
-
-void stack_print()
-{
-	stack<NodeBlock*> stack_tmp;
-
-	cout << "====== STACK PRINT =======" << endl;
-
-	while(!stack_node.empty())
-	{
-		stack_node.top()->print();
-		NodeBlock* tmp = stack_node.top();
-		stack_tmp.push(tmp);
-		stack_node.pop();
-	}
-
-	while(!stack_tmp.empty()){
-		NodeBlock *tmp2 = stack_tmp.top();
-		stack_node.push(tmp2);
-		stack_tmp.pop();
-	}
-
-	cout << "==========================" << endl;
-
-}
-
 
 int main() {
   while(yyparse());
@@ -508,23 +377,6 @@ int main() {
 	}
 	file_p<<genTail()<<endl;
 	file_p.close();
-
-/*
-  // open a file handle to a particular file:
-  FILE *file_p = fopen("a.snazzle.file", "r");
-  // make sure it is valid:
-  if (!file_p) {
-    cout << "I can't open a.snazzle.file!" << endl;
-    return -1;
-  }
-  // set flex to read from it instead of defaulting to STDIN:
-  yyin = file_p;
-
-  // parse through the input until there is no more:
-  do {
-    yyparse();
-  } while (!feof(yyin));
-*/
 
   return 0;
 }

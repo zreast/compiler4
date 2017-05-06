@@ -14,13 +14,12 @@ hex [0-9a-fA-F]
 
 {blank} { }
 
-{hex}+[hH] {
-  sscanf(yytext,"%x",&yylval);
-  return CONST;
-}
-
 {dec} {
   sscanf(yytext,"%d",&yylval);
+  return CONST;
+}
+{hex}+[hH] {
+  sscanf(yytext,"%x",&yylval);
   return CONST;
 }
 
@@ -37,7 +36,7 @@ $[a-z] {
 
 "(" return OB;
 ")" return CB;
-"=" return EQ;
+"=" return EQUAL;
 "<<" return ASSIGN;
 "if" return IF;
 "then" return THEN;

@@ -1,2 +1,11 @@
-$c << 4H + AH
+$c << Ah + Ah
 showx $c
+$a << 1
+loop (20)
+	$a << $a+1
+	$b << $a%2
+	if ($b=0)
+		then		
+		show $a
+		endif
+endloop

@@ -1,27 +1,27 @@
-#include<string> 
+#include<string>
 #include<iostream>
 #include<sstream>
 using namespace std;
 
 
-class NodeBlock
+class mainbuffer
 {
 	public:
 		char type; //tell about type of nodeBlock
-		NodeBlock *left; 
-		NodeBlock *right;
+		mainbuffer *left;
+		mainbuffer *right;
 		//int value;
-		NodeBlock() {}
-		~NodeBlock() {}
+		mainbuffer() {}
+		~mainbuffer() {}
 		virtual void setValue(int) {};
 		virtual int  getValue() {};
-		virtual void print() { cout << "NodeBlock" << endl; };
+		virtual void print() { cout << "mainbuffer" << endl; };
 		virtual string getAsm() {};
 		void cgen(); // generate code assembly
 };
 
 
-class Variable : public NodeBlock 
+class Variable : public mainbuffer
 {
 	//In X86 have frame pointer name ebp
 	private:
@@ -50,9 +50,9 @@ class Variable : public NodeBlock
 		}
 };
 
-class Constant : public NodeBlock  
+class Constant : public mainbuffer
 {
-	private: 
+	private:
 		int value;
 	public:
 		Constant() {};
@@ -76,28 +76,28 @@ class Constant : public NodeBlock
 		}
 };
 
-class IfStatement : public NodeBlock
+class IfStatement : public mainbuffer
 {
 	public:
-		IfStatement(NodeBlock *condition) {
+		IfStatement(mainbuffer *condition) {
 			this->left = condition;
 			//this->right = then;
 			this->type = 'i';
 		}
 		~IfStatement() {}
 		virtual void print() {
-			cout << "condition is ";  
+			cout << "condition is ";
 			this->left->print();
 			//cout << " then ";
 			//this->right->print();
 		}
 };
 
-class AddSyntax : public NodeBlock 
+class AddSyntax : public mainbuffer
 {
 
 	public:
-		AddSyntax(NodeBlock *left,NodeBlock *right)
+		AddSyntax(mainbuffer *left,mainbuffer *right)
 		{
 			this->left = left;
 			this->right = right;
@@ -114,16 +114,16 @@ class AddSyntax : public NodeBlock
 			cout << " right = ";
 			this->right->print();
 			cout<< endl;
-		} 
+		}
 		virtual string getAsm(){
 			return "";
 		}
 };
 
-class Equal :public NodeBlock
+class Equal :public mainbuffer
 {
 	public:
-		Equal(NodeBlock *left,NodeBlock *right)
+		Equal(mainbuffer *left,mainbuffer *right)
 		{
 			this->left = left;
 			this->right = right;
@@ -136,10 +136,10 @@ class Equal :public NodeBlock
 		}
 };
 
-class MinusSyntax : public NodeBlock 
+class MinusSyntax : public mainbuffer
 {
 	public:
-		MinusSyntax(NodeBlock *left,NodeBlock *right){
+		MinusSyntax(mainbuffer *left,mainbuffer *right){
 			this->left = left;
 			this->right = right;
 			this->type = 'm';
@@ -154,10 +154,10 @@ class MinusSyntax : public NodeBlock
 		}
 };
 
-class TimesSyntax : public NodeBlock
+class TimesSyntax : public mainbuffer
 {
 	public:
-		TimesSyntax(NodeBlock *left,NodeBlock *right){
+		TimesSyntax(mainbuffer *left,mainbuffer *right){
 			this->left = left;
 			this->right = right;
 		}
@@ -171,10 +171,10 @@ class TimesSyntax : public NodeBlock
 		}
 };
 
-class DivideSyntax : public NodeBlock
+class DivideSyntax : public mainbuffer
 {
 	public:
-		DivideSyntax(NodeBlock *left,NodeBlock *right){
+		DivideSyntax(mainbuffer *left,mainbuffer *right){
 			this->left = left;
 			this->right = right;
 		}
@@ -188,10 +188,10 @@ class DivideSyntax : public NodeBlock
 		}
 };
 
-class ModSyntax : public NodeBlock
+class ModSyntax : public mainbuffer
 {
 	public:
-		ModSyntax(NodeBlock *left,NodeBlock *right){
+		ModSyntax(mainbuffer *left,mainbuffer *right){
 			this->left = left;
 			this->right = right;
 		}
@@ -205,10 +205,10 @@ class ModSyntax : public NodeBlock
 		}
 };
 
-class LoopStatement : public NodeBlock
+class LoopStatement : public mainbuffer
 {
       public:
-          LoopStatement(NodeBlock *condition) {
+          LoopStatement(mainbuffer *condition) {
           this->left = condition;
           //this->right = statement;
           this->type = 'l';
@@ -223,7 +223,7 @@ class LoopStatement : public NodeBlock
 
 };
 
-class Show : public NodeBlock
+class Show : public mainbuffer
 {
       private:
             int variable;
@@ -237,7 +237,7 @@ class Show : public NodeBlock
 	 }
 };
 
-class ShowX : public NodeBlock 
+class ShowX : public mainbuffer
 {
        private:
           int variable;
